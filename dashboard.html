@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Smart Home Energy Dashboard</title>
+    <style>
+        body {
+            margin: 0;
+            font-family: "Segoe UI", Arial, sans-serif;
+            background: linear-gradient(135deg, #1e3c72, #2a5298);
+            color: #333;
+        }
+
+        header {
+            background: #ffffff;
+            padding: 20px 40px;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.15);
+        }
+
+        header h1 {
+            margin: 0;
+            color: #2a5298;
+        }
+
+        .container {
+            padding: 30px 40px;
+        }
+
+        h2 {
+            color: #ffffff;
+            margin-top: 40px;
+        }
+
+        h3 {
+            color: #f1f1f1;
+            margin-top: 30px;
+        }
+
+        .card {
+            background: #ffffff;
+            padding: 20px;
+            border-radius: 12px;
+            margin: 20px 0;
+            box-shadow: 0 8px 20px rgba(0,0,0,0.25);
+            width: fit-content;
+        }
+
+        img {
+            display: block;
+            max-width: 100%;
+            border-radius: 8px;
+            max-height:100%;
+        }
+
+        hr {
+            margin: 50px 0;
+            border: none;
+            height: 1px;
+            background: rgba(255,255,255,0.4);
+        }
+
+        .tips-container {
+            margin-top: 20px;
+        }
+
+        .tip-box {
+            background: #ffffff;
+            padding: 16px 20px;
+            margin: 15px 0;
+            border-left: 6px solid #4CAF50;
+            border-radius: 8px;
+            font-size: 15px;
+            box-shadow: 0 6px 15px rgba(0,0,0,0.2);
+        }
+
+        .nav-link {
+            margin-top: 20px;
+            display: inline-block;
+            text-decoration: none;
+            color: #2a5298;
+            font-weight: bold;
+        }
+
+        .nav-link:hover {
+            text-decoration: underline;
+        }
+
+        footer {
+            text-align: center;
+            padding: 20px;
+            font-size: 14px;
+            color: #eee;
+            opacity: 0.9;
+        }
+    </style>
+</head>
+
+<body>
+
+    <header>
+        <h1>Smart Home Energy Dashboard</h1>
+        <a href="/" class="nav-link">← Back to Home</a>
+    </header>
+
+    <div class="container">
+
+        <h2>Energy Visualizations</h2>
+
+        <h3>Hourly Consumption</h3>
+        <div class="card">
+            <img src="/static/{{ hourly_avg_features }}" width="800">
+        </div>
+
+        <h3>Daily Consumption</h3>
+        <div class="card">
+            <img src="/static/{{ daily_total_features }}" width="800">
+        </div>
+        <h3>Weekly Consumption</h3>
+        <div class="card">
+            <img src="/static/{{ weekly_total_features }}" width="800">
+        </div>
+        <h3>Monthly Consumption</h3>
+        <div class="card">
+            <img src="/static/{{ monthly_total_features }}" width="800">
+        </div>
+        <h3>Device-wise Usage (Pie)</h3>
+        <div class="card">
+            <img src="/static/{{ device_pie }}" width="800">
+        </div>
+
+        <h3>Device-wise Usage (Bar)</h3>
+        <div class="card">
+            <img src="/static/{{ device_bar }}" width="800">
+        </div>
+
+        <hr>
+
+        <h2>Smart Suggestions</h2>
+
+        <div class="tips-container">
+            {% for tip in suggestions %}
+                <div class="tip-box">{{ tip }}</div>
+            {% endfor %}
+        </div>
+
+    </div>
+
+    <footer>
+        Smart Home Energy Analysis & Forecasting System
+    </footer>
+
+</body>
+</html>
