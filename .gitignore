@@ -1,0 +1,7 @@
+# Ignore everything
+*
+
+# Allow only these files
+!.gitignore
+!.gitattributes
+!SmartHome_Energy_Project_PPT.pptx
