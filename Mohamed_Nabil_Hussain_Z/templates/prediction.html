@@ -1,0 +1,260 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Energy Forecast</title>
+    <style>
+        body {
+            margin: 0;
+            height: 100vh;
+            font-family: "Segoe UI", Arial, sans-serif;
+            background: linear-gradient(135deg, #2a5298, #1e3c72);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #ffffff;
+        }
+
+        .card {
+            background: #ffffff;
+            color: #333;
+            padding: 40px;
+            width: 460px;
+            border-radius: 12px;
+            text-align: center;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.3);
+        }
+
+        h1 {
+            margin-bottom: 8px;
+            color: #2a5298;
+        }
+
+        p {
+            font-size: 14px;
+            margin-bottom: 22px;
+            color: #555;
+        }
+
+        input, select {
+            width: 95%;
+            padding: 12px;
+            font-size: 16px;
+            border-radius: 6px;
+            border: 1px solid #ccc;
+            margin-bottom: 15px;
+            background: #fff;
+        }
+
+        button {
+            width: 95%;
+            padding: 14px;
+            font-size: 16px;
+            font-weight: bold;
+            border: none;
+            border-radius: 8px;
+            background: #2a5298;
+            color: #ffffff;
+            cursor: pointer;
+            margin-top: 10px;
+            transition: all 0.3s ease;
+        }
+
+        button:hover {
+            background: #1e3c72;
+            transform: translateY(-2px);
+        }
+
+        .secondary {
+            background: #4caf50;
+        }
+
+        .secondary:hover {
+            background: #388e3c;
+        }
+
+        #result {
+            margin-top: 25px;
+            font-size: 17px;
+            color: #2a5298;
+            line-height: 1.5;
+        }
+
+        .error {
+            color: red;
+        }
+
+        .back-link {
+            display: block;
+            margin-top: 20px;
+            text-decoration: none;
+            color: #2a5298;
+            font-size: 14px;
+        }
+
+        .back-link:hover {
+            text-decoration: underline;
+        }
+    </style>
+</head>
+
+<body>
+
+<div class="card">
+    <h1>Energy Usage Forecast</h1>
+    <p>Predictions are based on the last 48 hours using LSTM forecasting.</p>
+
+    <select id="device">
+        <option value="">Total house</option>
+    </select>
+
+    <input
+        id="house"
+        type="number"
+        step="0.01"
+        placeholder="Last hour energy"
+    >
+
+    <button onclick="predictNextHour()">Predict Next Hour</button>
+    <button class="secondary" onclick="predictDay()">Predict Next Day</button>
+    <button class="secondary" onclick="predictWeek()">Predict Next Week</button>
+    <button class="secondary" onclick="predictMonth()">Predict Next Month</button>
+
+    <div id="result"></div>
+
+    <a href="/" class="back-link">← Back to Home</a>
+</div>
+
+<script>
+    async function loadDevices() {
+        try {
+            const res = await fetch("/devices");
+            const devices = await res.json();
+            const select = document.getElementById("device");
+
+            devices.forEach(device => {
+                const option = document.createElement("option");
+                option.value = device;
+                option.textContent = device;
+                select.appendChild(option);
+            });
+        } catch (err) {
+            console.error("Failed to load devices", err);
+        }
+    }
+
+    window.onload = loadDevices;
+
+    function getPayload(includeHouse = false) {
+        const deviceVal = document.getElementById("device").value;
+        const payload = {};
+
+        if (deviceVal) payload.device = deviceVal;
+
+        if (includeHouse) {
+            const houseVal = parseFloat(document.getElementById("house").value);
+            if (isNaN(houseVal)) {
+                throw new Error("Please enter last hour energy value");
+            }
+            payload.house_power = houseVal;
+        }
+
+        return payload;
+    }
+
+    async function handleResponse(res) {
+        if (!res.ok) {
+            const text = await res.text();
+            throw new Error(text || "Server error");
+        }
+        return res.json();
+    }
+
+    async function predictNextHour() {
+        try {
+            const payload = getPayload(true);
+
+            const res = await fetch("/predict_with_input", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(payload)
+            });
+
+            const data = await handleResponse(res);
+
+            document.getElementById("result").innerHTML =
+                "<b>Next Hour Prediction:</b><br>" +
+                data.next_power_kW.toFixed(3) + " W";
+
+        } catch (err) {
+            document.getElementById("result").innerHTML =
+                "<div class='error'>" + err.message + "</div>";
+        }
+    }
+        async function predictDay() {
+        try {
+            const payload = getPayload();
+
+            const res = await fetch("/predict_day", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(payload)
+            });
+
+            const data = await handleResponse(res);
+
+            document.getElementById("result").innerHTML =
+                "<b>Next Day Forecast (" + data.device + ")</b><br>" +
+                "Average Usage: " + data.avg_kW.toFixed(2) + " W";
+
+        } catch (err) {
+            document.getElementById("result").innerHTML =
+                "<div class='error'>" + err.message + "</div>";
+        }
+    }
+    async function predictWeek() {
+        try {
+            const payload = getPayload();
+
+            const res = await fetch("/predict_week", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(payload)
+            });
+
+            const data = await handleResponse(res);
+
+            document.getElementById("result").innerHTML =
+                "<b>Next Week Forecast (" + data.device + ")</b><br>" +
+                "Average Usage: " + data.avg_kW.toFixed(2) + " W";
+
+        } catch (err) {
+            document.getElementById("result").innerHTML =
+                "<div class='error'>" + err.message + "</div>";
+        }
+    }
+
+    async function predictMonth() {
+        try {
+            const payload = getPayload();
+
+            const res = await fetch("/predict_month", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(payload)
+            });
+
+            const data = await handleResponse(res);
+
+            document.getElementById("result").innerHTML =
+                "<b>Next Month Forecast (" + data.device + ")</b><br>" +
+                "Average Usage: " + data.avg_kW.toFixed(2) + " W";
+
+        } catch (err) {
+            document.getElementById("result").innerHTML =
+                "<div class='error'>" + err.message + "</div>";
+        }
+    }
+</script>
+
+</body>
+</html>
